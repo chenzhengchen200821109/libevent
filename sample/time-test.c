@@ -100,6 +100,7 @@ main(int argc, char **argv)
 
 	evutil_gettimeofday(&lasttime, NULL);
 
+	/* event loop */
 	event_base_dispatch(base);
 
 	return (0);

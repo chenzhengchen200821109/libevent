@@ -48,6 +48,7 @@ main(int argc, char **argv)
 	WSAStartup(0x0201, &wsa_data);
 #endif
 
+	/* Initalize the event library */
 	base = event_base_new();
 	if (!base) {
 		fprintf(stderr, "Could not initialize libevent!\n");
@@ -58,6 +59,7 @@ main(int argc, char **argv)
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(PORT);
 
+	//listen()函数的封装
 	listener = evconnlistener_new_bind(base, listener_cb, (void *)base,
 	    LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE, -1,
 	    (struct sockaddr*)&sin,
@@ -68,6 +70,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	//信号事件
 	signal_event = evsignal_new(base, SIGINT, signal_cb, (void *)base);
 
 	if (!signal_event || event_add(signal_event, NULL)<0) {
@@ -75,6 +78,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	//事件循环，阻塞
 	event_base_dispatch(base);
 
 	evconnlistener_free(listener);
@@ -98,6 +102,7 @@ listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
 		event_base_loopbreak(base);
 		return;
 	}
+	//buffer可写时回调conn_writecb回调函数
 	bufferevent_setcb(bev, NULL, conn_writecb, conn_eventcb, NULL);
 	bufferevent_enable(bev, EV_WRITE);
 	bufferevent_disable(bev, EV_READ);
